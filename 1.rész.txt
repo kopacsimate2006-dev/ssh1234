@@ -1,0 +1,314 @@
+1. Topológia felépítése
+
+Helyezd ki az eszközöket:
+
+2 db Router
+Sziszi_A
+Sziszi_B
+2 db Switch
+SW01
+SW02
+1 db PC
+1 db Laptop
+1 db Wireless Router
+Kábelezés
+Router ↔ Router
+Serial kábel
+Sziszi_A S0/1/0 ↔ Sziszi_B S0/1/0
+Switch ↔ Switch
+Copper Straight-Through
+Fa0/16
+Fa0/17
+Fa0/18
+SW02 ↔ Router
+SW02 Fa0/24 ↔ Sziszi_B G0/0/0
+PC
+PC1 → SW01 Fa0/2
+Laptop
+Laptop → SW02 Fa0/12
+2. SW01 konfigurálása
+CLI megnyitása
+enable
+configure terminal
+VLAN létrehozás
+vlan 10
+name IRODA
+
+vlan 20
+name TANTEREM
+Portok hozzárendelése
+VLAN 10
+interface range fa0/1-10
+switchport mode access
+switchport access vlan 10
+VLAN 20
+interface range fa0/11-15
+switchport mode access
+switchport access vlan 20
+EtherChannel létrehozás
+interface range fa0/16-18
+channel-group 1 mode active
+exit
+Port-channel trunk
+interface port-channel 1
+switchport mode trunk
+Switch IP beállítás
+interface vlan 10
+ip address 192.168.41.2 255.255.255.128
+no shutdown
+Gateway
+ip default-gateway 192.168.41.1
+SSH beállítás
+hostname SW01
+
+ip domain-name sziszi.local
+
+username admin secret Sziszipww1
+
+crypto key generate rsa
+
+Ha kérdezi:
+
+How many bits?
+
+írd:
+
+1024
+
+Majd:
+
+ip ssh version 2
+
+line vty 0 4
+login local
+transport input ssh
+Mentés
+copy running-config startup-config
+3. SW02 konfigurálása
+
+Ugyanez, csak IP más:
+
+interface vlan 10
+ip address 192.168.41.3 255.255.255.128
+no shutdown
+
+Gateway:
+
+ip default-gateway 192.168.41.1
+Fa0/24 trunk
+interface fa0/24
+switchport mode trunk
+4. Sziszi_A router konfigurálása
+enable
+configure terminal
+hostname Sziszi_A
+Serial interfész
+interface s0/1/0
+ip address 10.10.11.1 255.255.255.252
+clock rate 64000
+no shutdown
+G0/0/0
+interface g0/0/0
+ip address 192.168.21.1 255.255.255.248
+no shutdown
+G0/0/1
+interface g0/0/1
+ip address 192.168.100.11 255.255.255.128
+no shutdown
+Default route
+ip route 0.0.0.0 0.0.0.0 g0/0/1
+5. ACL tiltás (www.badacsony.hu)
+access-list 101 deny tcp any host www.badacsony.hu eq 80
+access-list 101 permit ip any any
+
+Alkalmazás:
+
+interface g0/0/1
+ip access-group 101 out
+6. Sziszi_B router konfigurálása
+enable
+configure terminal
+hostname Sziszi_B
+Serial
+interface s0/1/0
+ip address 10.10.11.2 255.255.255.252
+no shutdown
+Router-on-a-stick
+VLAN10
+interface g0/0/0.10
+encapsulation dot1Q 10
+ip address 192.168.41.1 255.255.255.128
+VLAN20
+interface g0/0/0.20
+encapsulation dot1Q 20
+ip address 192.168.41.129 255.255.255.128
+Fizikai interfész bekapcsolása
+interface g0/0/0
+no shutdown
+7. DHCP beállítás
+Kizárások
+ip dhcp excluded-address 192.168.41.1 192.168.41.10
+
+ip dhcp excluded-address 192.168.41.129 192.168.41.131
+VLAN10 DHCP
+ip dhcp pool LAN10
+network 192.168.41.0 255.255.255.128
+default-router 192.168.41.1
+dns-server 8.8.8.8
+VLAN20 DHCP
+ip dhcp pool LAN20
+network 192.168.41.128 255.255.255.128
+default-router 192.168.41.129
+dns-server 8.8.8.8
+8. SSH routeren
+ip domain-name sziszi.local
+
+username admin secret Sziszipww
+
+crypto key generate rsa
+
+Írd:
+
+1024
+
+Majd:
+
+ip ssh version 2
+
+line vty 0 4
+login local
+transport input ssh
+9. OSPF beállítás
+Sziszi_A
+router ospf 1
+
+network 10.10.11.0 0.0.0.3 area 0
+network 192.168.21.0 0.0.0.7 area 0
+network 192.168.100.0 0.0.0.127 area 0
+Sziszi_B
+router ospf 1
+
+network 10.10.11.0 0.0.0.3 area 0
+network 192.168.41.0 0.0.0.127 area 0
+network 192.168.41.128 0.0.0.127 area 0
+10. Wireless Router beállítása
+GUI fül
+Internet Setup
+Static IP
+IP:
+192.168.21.5
+Mask:
+255.255.255.248
+Gateway:
+192.168.21.1
+DNS:
+8.8.8.8
+LAN
+192.168.50.1
+255.255.255.0
+DHCP
+
+Az utolsó 100 címet ossza:
+
+Start IP:
+
+192.168.50.155
+
+Maximum users:
+
+100
+Wireless
+
+SSID:
+
+Sziszi_1
+
+Security:
+
+WPA2-PSK
+
+Password:
+
+2026Sziszi
+11. PC1 DHCP
+
+PC → Desktop → IP Configuration
+
+Kattints:
+
+DHCP
+12. Tesztelés
+Ping
+
+PC1 command prompt:
+
+ping 192.168.41.1
+
+Majd:
+
+ping 10.10.11.1
+13. Konfiguráció mentése
+
+Minden eszközön:
+
+copy running-config startup-config
+14. Képernyőkép
+
+Készíts screenshotot:
+
+running-config
+ping sikeres
+OSPF
+DHCP működés
+
+Mentés:
+
+Hálózat1_sajátnév
+acl kitöltésnél melyik eszközön kell
+
+Az ACL-t a feladat szerint a Sziszi_A routeren kell beállítani.
+
+A dokumentumban ez szerepel:
+
+„A Sziszi_A routeren állítson be alapértelmezett útvonalat (gi0/0/1) és vegyen fel ACL mondatot…”
+
+Pontosan hova kell írni?
+
+A CLI-ben a Sziszi_A routeren:
+
+enable
+configure terminal
+ACL létrehozása
+access-list 101 deny tcp any any eq 80
+access-list 101 permit ip any any
+
+VAGY ha hostname alapú tiltást akarnak:
+
+ip host badacsony 1.1.1.1
+
+de Packet Tracerben általában IP alapú ACL működik biztosan.
+
+ACL alkalmazása
+
+A feladat szerint a kimenő internetes interfész:
+
+g0/0/1
+
+Ezért:
+
+interface g0/0/1
+ip access-group 101 out
+Mit csinál ez?
+Tiltja a HTTP (80-as port) forgalmat
+Minden más forgalmat enged
+Vizsgán biztos működő ACL
+
+Ezt érdemes használni:
+
+access-list 101 deny tcp any any eq 80
+access-list 101 permit ip any any
+
+alkalmazás:
+
+interface g0/0/1
+ip access-group 101 out

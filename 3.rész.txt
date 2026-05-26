@@ -1,0 +1,485 @@
+# III. Felhőszolgáltatás telepítése és beállítása – részletes lépésről lépésre útmutató
+
+A feladat célja, hogy az Azure-ban létrehozz egy Windows és egy Linux virtuális gépet, majd különböző szolgáltatásokat konfigurálj rajtuk.
+
+---
+
+# 2. Windows virtuális gép létrehozása (SzisziVM)
+
+## Virtuális gép létrehozása
+
+1. A bal felső sarokban kattints:
+
+   * „Create a resource”
+   * vagy „Erőforrás létrehozása”
+
+2. Válaszd:
+
+   * „Virtual Machine”
+
+3. Resource Group:
+
+   * Kattints: „Create new”
+   * Név: `vizsgazo`
+
+4. Virtual machine name:
+
+   * `SzisziVM`
+
+5. Region:
+
+   * válassz közeli régiót pl. West Europe
+
+6. Image:
+
+   * „Windows Server 2022 Datacenter”
+
+7. Size:
+
+   * hagyd alapértelmezetten vagy válassz kisebb méretet
+
+
+# 3. Adminisztrátor adatok megadása
+
+## Administrator account
+
+1. Username:
+   `szisziuser1`
+
+2. Password:
+   `Sziszi*2026!`
+
+3. Confirm password:
+   ugyanaz
+
+
+
+# 4. Lemez beállítása
+
+1. Menj a „Disks” részre.
+2. Ellenőrizd, hogy:
+
+   * OS Disk Size = `130 GB`
+
+Ha nem 130 GB:
+
+* kattints a „Change size” vagy „Create and attach a new disk” részre
+* állítsd 130 GB-ra.
+
+
+# 5. Hálózat beállítása
+
+## Virtual Network létrehozása
+
+1. Networking fül.
+2. Virtual Network:
+
+   * „Create new”
+3. Név:
+   `W2022NY2k`
+
+## Address space
+
+Állítsd be:
+
+* `20.5.1.0/24`
+
+
+# 6. Portok beállítása
+
+## Inbound ports
+
+Engedélyezd:
+
+* RDP (3389)
+* HTTP (80)
+
+### Fontos:
+
+Az RDP csak IPv4-re legyen engedélyezve.
+
+---
+
+# 7. Virtuális gép létrehozása
+
+1. Kattints:
+
+   * „Review + create”
+
+2. Ellenőrizd a beállításokat.
+
+3. Kattints:
+
+   * „Create”
+
+4. Várd meg a telepítést.
+
+---
+
+# 8. Csatlakozás a Windows szerverhez
+
+1. Nyisd meg a létrehozott virtuális gépet.
+
+2. Kattints:
+
+   * „Connect”
+   * „RDP”
+
+3. Töltsd le az RDP fájlt.
+
+4. Nyisd meg.
+
+5. Jelentkezz be:
+
+Felhasználó:
+`szisziuser1`
+
+Jelszó:
+`Sziszi*2026!`
+
+---
+
+# 9. Active Directory szolgáltatás telepítése
+
+## Server Manager használata
+
+1. Nyisd meg:
+
+   * Server Manager
+
+2. Kattints:
+
+   * „Add roles and features”
+
+3. Next → Next.
+
+4. Válaszd ki a szervert.
+
+5. Pipáld ki:
+
+   * „Active Directory Domain Services”
+
+6. Add Features.
+
+7. Next → Install.
+
+8. Telepítés után kattints:
+
+   * „Promote this server to a domain controller”
+
+---
+
+# 10. Tartomány létrehozása
+
+1. Válaszd:
+
+   * „Add a new forest”
+
+2. Root domain name:
+
+   * `info26.local`
+
+3. DSRM Password:
+
+   * `Sziszi2026`
+
+4. Next → Next → Install.
+
+5. A gép újraindul.
+
+---
+
+# 11. IIS webszerver telepítése
+
+1. Server Manager.
+
+2. Add roles and features.
+
+3. Pipáld ki:
+
+   * „Web Server (IIS)”
+
+4. Add Features.
+
+5. Install.
+
+---
+
+# 12. Weboldal létrehozása
+
+## HTML fájl létrehozása
+
+1. Nyisd meg:
+   `C:\inetpub\wwwroot`
+
+2. Töröld a régi index fájlt, ha van.
+
+3. Hozz létre új fájlt:
+   `index.html`
+
+4. Tartalma például:
+
+```html
+<html>
+<head>
+<title>Vizsga</title>
+</head>
+<body>
+<h1>Kiss Béla</h1>
+</body>
+</html>
+```
+
+5. Mentsd el.
+
+---
+
+# 13. Weboldal tesztelése
+
+1. Nyisd meg a böngészőt a szerveren.
+2. Írd be:
+
+```text
+http://localhost
+```
+
+3. Ha megjelenik a neved:
+
+   * sikeres.
+
+4. Készíts képernyőképet.
+
+5. Mentsd:
+   `IoT_sajatnev.doc`
+
+---
+
+# 14. Linux Ubuntu szerver létrehozása
+
+1. Azure Portal.
+2. Create Resource.
+3. Virtual Machine.
+
+## Alapadatok
+
+* Name:
+  `SzisziLnx`
+
+* Image:
+  Ubuntu Server
+
+* Username:
+  `szisziuser`
+
+---
+
+# 15. SSH kulcs létrehozása
+
+1. Authentication type:
+
+   * SSH public key
+
+2. Generate new key pair.
+
+3. Key pair name:
+   `sziszikey`
+
+---
+
+# 16. Portok engedélyezése
+
+Engedélyezd:
+
+* SSH (22)
+* HTTP (80)
+
+---
+
+# 17. Linux gép létrehozása
+
+1. Review + create.
+2. Create.
+3. Töltsd le az SSH kulcsot (.pem fájl).
+
+---
+
+# 18. Kapcsolódás Linux szerverhez
+
+## Windows PowerShellből
+
+```powershell
+ssh -i sziszikey.pem szisziuser@IP_CIM
+```
+
+Példa:
+
+```powershell
+ssh -i sziszikey.pem szisziuser@20.55.10.12
+```
+
+---
+
+# 19. Linux frissítése
+
+Kapcsolódás után:
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+---
+
+# 20. Samba telepítése
+
+```bash
+sudo apt install samba -y
+```
+
+Ellenőrzés:
+
+```bash
+samba --version
+```
+
+---
+
+# 21. Storage Account létrehozása
+
+1. Azure Portal.
+2. Create Resource.
+3. Storage Account.
+
+## Beállítások
+
+* Name:
+  `sziszistorage`
+
+* Resource Group:
+  `vizsgazo`
+
+4. Review + create.
+5. Create.
+
+---
+
+# 22. Azure Files létrehozása
+
+1. Nyisd meg a Storage Accountot.
+
+2. Bal oldalt:
+
+   * Data storage
+   * File shares
+
+3. Kattints:
+
+   * „+ File Share”
+
+4. Név:
+   `VIZSGA`
+
+5. Create.
+
+---
+
+# 23. TXT fájl létrehozása Linux verzióval
+
+## Linux verzió lekérdezése
+
+Linux szerveren:
+
+```bash
+lsb_release -a
+```
+
+vagy:
+
+```bash
+cat /etc/os-release
+```
+
+---
+
+# 24. Szövegfájl készítése
+
+Példa:
+
+```bash
+echo Ubuntu 22.04 > sajatnev.txt
+```
+
+---
+
+# 25. Feltöltés Azure File Share-be
+
+1. Azure Portal → Storage Account.
+2. File Shares → VIZSGA.
+3. Upload.
+4. Tallózd be:
+   `sajatnev.txt`
+5. Upload.
+
+---
+
+# 26. Ellenőrzés
+
+Vizsga végén ellenőrizd:
+
+## Windows szerver
+
+* működik-e az RDP
+* működik-e az IIS weboldal
+* telepítve van-e az AD
+
+## Linux szerver
+
+* működik-e az SSH
+* telepítve van-e a Samba
+
+## Azure Storage
+
+* létezik-e a VIZSGA mappa
+* benne van-e a txt fájl
+
+---
+
+# Gyors parancslista
+
+## Linux frissítés
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+## Samba telepítés
+
+```bash
+sudo apt install samba -y
+```
+
+## Linux verzió
+
+```bash
+cat /etc/os-release
+```
+
+## SSH csatlakozás
+
+```powershell
+ssh -i sziszikey.pem szisziuser@IP_CIM
+```
+
+---
+
+# Mire figyelj vizsgán
+
+* Mindig ments.
+* Készíts képernyőképet.
+* Ellenőrizd a portokat.
+* Resource Group neve pontos legyen.
+* VM nevek pontosak legyenek.
+* Jelszavakat pontosan írd.
+* A weboldal működjön.
+* A txt fájl biztosan legyen feltöltve.

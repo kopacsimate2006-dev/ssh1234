@@ -1,0 +1,448 @@
+1. WINDOWS SERVER FELADATOK
+1.1 Virtuális gép indítása
+
+Indítsd el a VirtualBoxban:
+
+Gép neve: Vizsga2026
+Felhasználó: vbaxuser
+Jelszó: Sziszi2026
+
+1.2 Hálózati adapter beállítása
+
+A dokumentum szerint:
+
+IP: 192.168.100.100
+Maszk: 255.255.255.0
+Gateway: 192.168.100.254
+DNS: 192.168.100.100
+Lépések
+1. Start → Settings
+Nyomd meg: Windows + I
+2. Network & Internet
+Ethernet
+Adapter options
+3. Jobb klikk az Etherneten
+
+→ Properties
+
+4. Internet Protocol Version 4 (TCP/IPv4)
+
+→ Properties
+
+5. Add meg:
+Beállítás	Érték
+IP	192.168.100.100
+Maszk	255.255.255.0
+Gateway	192.168.100.254
+DNS	192.168.100.100
+
+→ OK
+
+1.3 Active Directory telepítése
+
+A feladat:
+
+Új erdő
+Domain: info26.local
+Jelszó: Sziszi2026
+Lépések
+1. Server Manager megnyitása
+
+Automatikusan indul.
+
+Ha nem:
+
+Start → Server Manager
+2. Add Roles and Features
+
+Jobb felső sarok:
+
+→ Manage
+→ Add Roles and Features
+
+3. Installation Type
+
+→ Role-based or feature-based installation
+
+Next
+
+4. Server kiválasztása
+
+Next
+
+5. Pipáld be:
+
+✅ Active Directory Domain Services
+
+→ Add Features
+
+Next végig
+
+Install
+
+1.4 Domain Controller létrehozása
+
+Telepítés után felül sárga zászló jelenik meg.
+
+Kattints rá:
+
+→ Promote this server to a domain controller
+
+Beállítások
+Deployment Configuration
+
+✅ Add a new forest
+
+Root domain:
+
+info26.local
+
+Next
+
+DSRM jelszó
+
+Írd be:
+
+Sziszi2026
+
+Next végig
+
+Install
+
+Újraindulás
+
+A szerver újraindul.
+
+Ezután így lépj be:
+
+info26\Administrator
+
+Jelszó:
+
+Sziszi2026
+1.5 OU létrehozása
+
+Feladat: oktatok nevű szervezeti egység.
+
+Lépések
+1. Tools
+
+Server Manager → Tools
+
+→ Active Directory Users and Computers
+
+2. Domain kibontása
+info26.local
+3. Jobb klikk a domainen
+
+→ New
+→ Organizational Unit
+
+Név:
+
+oktatok
+
+OK
+
+1.6 Felhasználó létrehozása
+
+Feladat:
+
+Név: NagyLajos
+login: nlajos
+Lépések
+1. Jobb klikk az „oktatok” OU-n
+
+→ New
+→ User
+
+2. Add meg
+Mező	Érték
+First name	Nagy
+Last name	Lajos
+User logon name	nlajos
+
+Next
+
+3. Jelszó
+Sziszi2026
+
+Vedd ki:
+
+❌ User must change password
+
+Pipáld:
+
+✅ Password never expires
+
+Finish
+
+1.7 DHCP telepítése
+
+Feladat:
+
+max 20 cím
+50-es címtől
+Számolás
+
+Ha 50-től indul és 20 címet oszt:
+
+192.168.100.50
+→
+192.168.100.69
+Lépések
+1. Server Manager
+
+→ Manage
+→ Add Roles and Features
+
+2. Pipáld be:
+
+✅ DHCP Server
+
+Install
+
+3. Notification zászló
+
+→ Complete DHCP configuration
+
+Next végig
+
+Commit
+
+Close
+
+1.8 DHCP Scope létrehozása
+1. Tools
+
+→ DHCP
+
+2. IPv4
+
+Jobb klikk:
+
+→ New Scope
+
+3. Scope neve
+helyi
+
+Next
+
+4. Tartomány
+Mező	Érték
+Start IP	192.168.100.50
+End IP	192.168.100.69
+Mask	255.255.255.0
+
+Next
+
+5. Gateway
+192.168.100.254
+6. DNS
+
+DNS server:
+
+192.168.100.100
+
+Domain:
+
+info26.local
+7. Activate scope
+
+✅ Yes activate this scope
+
+Finish
+
+1.9 DNS zóna létrehozása
+
+Feladat:
+
+zóna: intranet.local
+host: info
+Lépések
+1. Tools
+
+→ DNS
+
+2. Forward Lookup Zones
+
+Jobb klikk:
+
+→ New Zone
+
+3. Zone Type
+
+✅ Primary Zone
+
+Next
+
+4. Zone Name
+intranet.local
+
+Finish
+
+1.10 Host rekord létrehozása
+Jobb klikk az új zónán
+
+→ New Host (A or AAAA)
+
+Add meg
+Mező	Érték
+Name	info
+IP	192.168.100.100
+
+Add Host
+
+Done
+
+2. DEBIAN 12 LINUX FELADATOK
+
+Feladatok:
+
+2.1 Linux gép indítása
+Gép: Vizsga2026Linux
+User: linuxrg
+Password: Vizsga2026
+2.2 Új 30 GB-os lemez hozzáadása
+VirtualBoxban
+
+A gép legyen kikapcsolva.
+
+Settings
+
+→ Storage
+
+Controller SATA
+
+→ kis HDD ikon
+
+→ Add Hard Disk
+
+Create
+Beállítás	Érték
+Méret	30 GB
+Típus	VDI
+Dynamic	igen
+
+Név:
+
+ADAT
+
+OK
+
+2.3 Linux indítása
+
+Indítsd el a gépet.
+
+2.4 Lemez ellenőrzése
+
+Terminál:
+
+lsblk
+
+Látnod kell pl.:
+
+sdb   30G
+2.5 Partíció létrehozása
+sudo fdisk /dev/sdb
+fdisk lépések
+n
+p
+1
+ENTER
+ENTER
+w
+2.6 Fájlrendszer létrehozása
+sudo mkfs.ext4 /dev/sdb1
+2.7 Címke beállítása
+sudo e2label /dev/sdb1 ADAT
+2.8 Csatolási pont
+sudo mkdir /adat
+2.9 Csatolás
+sudo mount /dev/sdb1 /adat
+2.10 Ellenőrzés
+df -h
+
+Látnod kell:
+
+/dev/sdb1
+
+és /adat
+
+2.11 Midnight Commander telepítés
+
+Feladat:
+
+sudo apt update
+sudo apt install mc -y
+
+Indítás:
+
+mc
+2.12 Apache webszerver telepítése
+sudo apt install apache2 -y
+2.13 Weboldal létrehozása
+
+A fájl helye:
+
+/var/www/html/index.html
+Szerkesztés
+sudo nano /var/www/html/index.html
+Példa HTML
+
+Cseréld ki a nevedre.
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Vizsga</title>
+<style>
+body{
+background-image:url('https://picsum.photos/1920/1080');
+background-size:cover;
+color:black;
+}
+</style>
+</head>
+
+<body>
+
+<h1>2026.05.25</h1>
+
+<p>Neved</p>
+
+</body>
+</html>
+2.14 Apache újraindítás
+sudo systemctl restart apache2
+2.15 Tesztelés
+
+Böngésző:
+
+http://localhost
+
+vagy:
+
+http://linux-ip-címe
+Mire figyelj a vizsgán?
+Nagyon gyakori hibák
+Windows
+rossz DNS
+DHCP scope nincs aktiválva
+nem rebootol AD után
+OU rossz helyen
+rossz tartománynév
+Linux
+nincs mountolva a partíció
+apache nincs elindítva
+rossz helyre mentett index.html
+elgépelés az fdiskben
+Pontszerző sorrend vizsgán
+IP beállítás
+AD
+DHCP
+DNS
+OU + user
+Linux disk
+Apache
+HTML
