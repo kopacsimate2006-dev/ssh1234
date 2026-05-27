@@ -1,0 +1,207 @@
+Az 1. részben fizikailag így kell összekötni és beállítani az eszközöket a feladat alapján.
+
+1. Fizikai bekötés
+Eszközök
+2 db router:
+Sziszi_A
+Sziszi_B
+2 db switch:
+SW01
+SW02
+1 PC
+1 Laptop
+1 WiFi router
+2. Kábelezés
+Router ↔ Router
+
+Serial kábel:
+
+Sziszi_A Se0/1/0
+Sziszi_B Se0/1/0
+
+IP-k:
+
+10.10.11.1/30
+10.10.11.2/30
+SW02 ↔ Sziszi_B
+
+UTP kábel:
+
+SW02 Fa0/24
+Sziszi_B Gi0/0/0
+
+Ez trunk kapcsolat lesz.
+
+SW01 ↔ SW02 EtherChannel
+
+3 kábel:
+
+Fa0/16
+Fa0/17
+Fa0/18
+
+mindkét switchen.
+
+Ez lesz az EtherChannel.
+
+PC bekötése
+
+PC1:
+
+SW01 vagy SW02 Fa0/2
+
+Ez VLAN10-be kerül.
+
+Laptop bekötése
+
+Laptop:
+
+SW01 vagy SW02 Fa0/12
+
+Ez VLAN20-ba kerül.
+
+WiFi router
+
+Internet/WAN port:
+
+Sziszi_A Gi0/0/0
+
+LAN oldala külön hálózat:
+
+192.168.50.0/24
+3. Switch konfiguráció
+VLAN-ok létrehozása
+
+Mindkét switchen:
+
+enable
+conf t
+
+vlan 10
+name IRODA
+
+vlan 20
+name TANTEREM
+Portok VLAN-ba rakása
+VLAN10
+interface range fa0/1-10
+switchport mode access
+switchport access vlan 10
+VLAN20
+interface range fa0/11-15
+switchport mode access
+switchport access vlan 20
+
+4. EtherChannel beállítás
+
+Mindkét switchen:
+
+interface range fa0/16-18
+channel-group 1 mode active
+exit
+
+interface port-channel 1
+switchport mode trunk
+5. Trunk beállítás SW02 → Router
+
+SW02:
+
+interface fa0/24
+switchport mode trunk
+6. Switch IP címek
+SW01
+interface vlan 10
+ip address 192.168.41.2 255.255.255.128
+no shutdown
+
+ip default-gateway 192.168.41.1
+SW02
+interface vlan 10
+ip address 192.168.41.3 255.255.255.128
+no shutdown
+
+ip default-gateway 192.168.41.1
+7. SSH switchen
+hostname SW01
+ip domain-name sziszi.local
+
+username admin secret Sziszipww1
+
+crypto key generate rsa
+1024
+
+ip ssh version 2
+
+line vty 0 4
+login local
+transport input ssh
+
+SW02-n ugyanígy.
+
+8. Sziszi_B router konfiguráció
+Router-on-a-stick
+interface g0/0/0
+no shutdown
+
+interface g0/0/0.10
+encapsulation dot1Q 10
+ip address 192.168.41.1 255.255.255.128
+
+interface g0/0/0.20
+encapsulation dot1Q 20
+ip address 192.168.41.129 255.255.255.128
+9. DHCP
+ip dhcp excluded-address 192.168.41.1 192.168.41.10
+ip dhcp excluded-address 192.168.41.129 192.168.41.131
+VLAN10
+ip dhcp pool LAN10
+network 192.168.41.0 255.255.255.128
+default-router 192.168.41.1
+dns-server 8.8.8.8
+VLAN20
+ip dhcp pool LAN20
+network 192.168.41.128 255.255.255.128
+default-router 192.168.41.129
+dns-server 8.8.8.8
+
+10. OSPF
+
+Mindkét routeren:
+
+router ospf 1
+network 10.10.11.0 0.0.0.3 area 0
+Sziszi_A
+network 192.168.21.0 0.0.0.7 area 0
+network 192.168.100.0 0.0.0.127 area 0
+Sziszi_B
+network 192.168.41.0 0.0.0.255 area 0
+11. Default route Sziszi_A
+ip route 0.0.0.0 0.0.0.0 g0/0/1
+12. ACL tiltás
+access-list 101 deny tcp any host www.badacsony.hu eq 80
+access-list 101 permit ip any any
+
+Utána interface-re:
+
+interface g0/0/1
+ip access-group 101 out
+13. WiFi router
+
+Állítsd GUI-ban:
+
+WAN
+IP: 192.168.21.5
+Mask: 255.255.255.248
+Gateway: 192.168.21.1
+DNS: 8.8.8.8
+LAN
+192.168.50.1/24
+WiFi
+SSID: Sziszi_1
+WPA2/WPA3
+Jelszó: 2026Sziszi
+DHCP
+
+Az utolsó 100 IP:
+
+kb. 192.168.50.155–254
